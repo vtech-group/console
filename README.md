@@ -1,2 +1,2 @@
-# console
+# Console
 Expansion for Laravel Console.

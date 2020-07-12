@@ -1,0 +1,24 @@
+{
+    "name": "vtech/console",
+    "description": "Expansion for Laravel Console.",
+    "keywords": ["console", "command", "artisan", "laravel"],
+    "license": "MIT",
+    "homepage": "https://vtechweb.com",
+    "authors": [
+        {
+            "name": "Jackie Do",
+            "email": "anhvudo@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "^5.4|^6.0|^7.0",
+        "illuminate/console": "^5.4|^6.0|^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vtech\\Console\\": ""
+        }
+    },
+    "minimum-stability": "stable"
+}
