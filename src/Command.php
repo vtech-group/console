@@ -2,6 +2,7 @@
 
 namespace Vtech\Console;
 
+use Exception;
 use Illuminate\Console\Command as IlluminateCommand;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -9,6 +10,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\Question;
 
 class Command extends IlluminateCommand
 {
@@ -38,21 +40,56 @@ class Command extends IlluminateCommand
      * @param string          $question
      * @param string|null     $default
      * @param string|callable $validator
+     * @param mixed|null      $attempts
      *
      * @return mixed
      */
-    public function ask($question, $default = null, $validator = null)
+    public function ask($question, $default = null, $validator = null, $attempts = null)
     {
-        return $this->output->ask($question, $default, $validator);
+        $question = new Question($question, $default);
+
+        $question->setValidator($validator)->setMaxAttempts($attempts);
+
+        try {
+            return $this->output->askQuestion($question);
+        } catch (Exception $exception) {
+            $this->errorBlock('Entered incorrect information multiple times. Cancel the action.', 'ERROR');
+            exit(1);
+        }
+    }
+
+    /**
+     * Prompt the user for input but hide the answer from the console.
+     *
+     * @param string        $question
+     * @param bool          $fallback
+     * @param callable|null $validator
+     * @param mixed|null    $attempts
+     *
+     * @return mixed
+     */
+    public function secret($question, $fallback = true, $validator = null, $attempts = null)
+    {
+        $question = new Question($question);
+
+        $question->setHidden(true)->setHiddenFallback($fallback)->setValidator($validator)->setMaxAttempts($attempts);
+
+        try {
+            return $this->output->askQuestion($question);
+        } catch (Exception $exception) {
+            $this->errorBlock('Entered incorrect information multiple times. Cancel the action.', 'ERROR');
+            exit(1);
+        }
     }
 
     /**
      * Give the user a single choice from an array of answers.
      *
-     * @param string      $question
-     * @param string|null $default
-     * @param mixed|null  $attempts
-     * @param bool        $multiple
+     * @param string        $question
+     * @param string|null   $default
+     * @param mixed|null    $attempts
+     * @param bool          $multiple
+     * @param callable|null $normalizer
      *
      * @return string|array
      */
@@ -200,6 +237,22 @@ class Command extends IlluminateCommand
     public function errorBlock($message, $label = null, $prefix = ' ', $padding = true, $escape = true)
     {
         $this->block($message, $label, 'error', $prefix, $padding, $escape);
+    }
+
+    /**
+     * Formats a list of key/value horizontally.
+     *
+     * Each row can be one of:
+     * * (string) 'A title'
+     * * (array)  ['key' => 'value']
+     *
+     * @param array $list
+     *
+     * @return void
+     */
+    public function list(array $list = [])
+    {
+        call_user_func_array([$this->output, 'definitionList'], $list);
     }
 
     /**
