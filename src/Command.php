@@ -6,7 +6,12 @@ use Exception;
 use Illuminate\Console\Command as IlluminateCommand;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Helper\TableCell;
+use Symfony\Component\Console\Helper\TableSeparator;
+use Symfony\Component\Console\Helper\TableStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -242,17 +247,86 @@ class Command extends IlluminateCommand
     /**
      * Formats a list of key/value horizontally.
      *
-     * Each row can be one of:
-     * * (string) 'A title'
-     * * (array)  ['key' => 'value']
-     *
-     * @param array $list
+     * @param array      $list   The list want to render
+     * @param string|int $symbol The index symbol
+     * @param string     $style  The color styles will apply to the header cell
+     * @param bool       $border Draw top and bottom borders
      *
      * @return void
      */
-    public function list(array $list = [])
+    public function list(array $list = [], $symbol = 'circle', $style = 'info', $border = false)
     {
-        call_user_func_array([$this->output, 'definitionList'], $list);
+        $tableStyle = new TableStyle();
+        $tableStyle
+            ->setHorizontalBorderChars($border ? '-' : '')
+            ->setVerticalBorderChars('')
+            ->setDefaultCrossingChar('')
+            ->setCellHeaderFormat('%s');
+
+        if ($style) {
+            $tableStyle->setCellHeaderFormat("<$style>%s</$style>");
+        }
+
+        $table   = new Table($this->output);
+        $headers = [];
+        $rows    = [];
+
+        if ($this->isAssoc($list)) {
+            foreach ($list as $key => $value) {
+                $headers[] = (is_numeric($symbol) ? ((int) $symbol++ . '. ') : ($this->bullet($symbol) . ' ')) . $key;
+                $rows[]    = $value;
+            }
+
+            $colons = array_fill(0, count($rows), ($style ? "<$style>:</$style>" : ':'));
+
+            $table->setRows([$colons, $rows]);
+        } else {
+            foreach ($list as $key => $value) {
+                $headers[] = (is_numeric($symbol) ? ((int) $symbol++ . '.') : $this->bullet($symbol));
+                $rows[]    = $value;
+            }
+
+            $table->setRows([$rows]);
+        }
+
+        $table->setHeaders($headers);
+        $table->setHorizontal();
+        $table->setStyle($tableStyle);
+
+        $table->render();
+        $this->newLine();
+    }
+
+    /**
+     * Return a formatted bullet with a style name.
+     *
+     * @param string $style The style name
+     *
+     * @return string
+     */
+    public function bullet($style)
+    {
+        if ('disc' == $style) {
+            return '•';
+        }
+
+        if ('circle' == $style) {
+            return '○';
+        }
+
+        if ('square' == $style) {
+            return '■';
+        }
+
+        if ('double-left-arrow' == $style) {
+            return '«';
+        }
+
+        if ('double-right-arrow' == $style) {
+            return '»';
+        }
+
+        return $style;
     }
 
     /**
@@ -306,5 +380,17 @@ class Command extends IlluminateCommand
         }
 
         return $this;
+    }
+
+    /**
+     * Determine if array is associative.
+     *
+     * @param array $array The array want to check
+     *
+     * @return bool
+     */
+    protected function isAssoc(array $array)
+    {
+        return (bool) count(array_filter(array_keys($array), 'is_string'));
     }
 }
