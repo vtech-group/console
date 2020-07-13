@@ -152,15 +152,37 @@ class Command extends IlluminateCommand
     }
 
     /**
-     * Formats a section title.
+     * Formats a command title.
      *
      * @param string $message
      *
      * @return void
      */
-    public function section($message)
+    public function title($message)
     {
-        $this->block('>>>>> ' . $message, null, 'fg=white;bg=blue', ' ', true);
+        $this->output->title($message);
+    }
+
+    /**
+     * Formats a heading title.
+     *
+     * @param string      $message The heading message
+     * @param int         $level   The heading level
+     * @param string|null $label   The symbol of heading
+     * @param string      $style   The color style
+     *
+     * @return void
+     */
+    public function section($message, $level = 1, $label = '#', $style = 'comment')
+    {
+        $level   = max(1, (int) $level);
+        $message = trim($message);
+
+        if (preg_match('/(\w|\d)$/', $message)) {
+            $message .= '.';
+        }
+
+        $this->block($message, $label ? str_repeat($label, $level) : null, $style, '');
     }
 
     /**
