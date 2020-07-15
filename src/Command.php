@@ -320,6 +320,21 @@ class Command extends IlluminateCommand
     }
 
     /**
+     * Alias of the writeList() method.
+     *
+     * @param array      $list   The list want to render
+     * @param string|int $symbol The index symbol
+     * @param string     $style  The color styles will apply to the header cell
+     * @param bool       $border Draw top and bottom borders
+     *
+     * @return void
+     */
+    public function listing(array $list = [], $symbol = 'circle', $style = 'info', $border = false)
+    {
+        $this->writeList($list, $symbol, $style, $border);
+    }
+
+    /**
      * Return a formatted bullet with a style name.
      *
      * @param string $style The style name
