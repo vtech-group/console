@@ -276,7 +276,7 @@ class Command extends IlluminateCommand
      *
      * @return void
      */
-    public function list(array $list = [], $symbol = 'circle', $style = 'info', $border = false)
+    public function writeList(array $list = [], $symbol = 'circle', $style = 'info', $border = false)
     {
         $tableStyle = new TableStyle();
         $tableStyle
